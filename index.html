@@ -26,15 +26,25 @@
         .btn-fund:hover { opacity: 0.9; transform: translateY(-2px); }
 
         /* Updates List */
-        .update-item { background: #0d1322; padding: 15px; border-left: 4px solid #00d2ff; margin-bottom: 15px; border-radius: 4px; }
+        .update-item { background: #0d1322; padding: 18px; border-left: 4px solid #00d2ff; margin-bottom: 18px; border-radius: 6px; }
         .update-date { font-size: 0.85rem; color: #64748b; margin-bottom: 5px; }
-        .update-title { font-size: 1.15rem; font-weight: bold; color: #e2e8f0; }
+        .update-title { font-size: 1.2rem; font-weight: bold; color: #e2e8f0; }
+        .update-media { margin-top: 12px; }
+        .update-media img { max-width: 100%; max-height: 400px; border-radius: 6px; border: 1px solid #1e293b; display: block; }
+        .update-media video { max-width: 100%; max-height: 400px; border-radius: 6px; border: 1px solid #1e293b; display: block; }
+        .update-media iframe { width: 100%; height: 315px; border: none; border-radius: 6px; }
+        .file-download-btn { display: inline-block; margin-top: 10px; padding: 8px 15px; background: #1e293b; color: #00d2ff; text-decoration: none; border-radius: 5px; font-size: 0.9rem; border: 1px solid #00d2ff; }
+        .file-download-btn:hover { background: #00d2ff; color: #0b0f19; }
 
         /* Admin Section */
         #admin-panel { display: none; background: #1a243b; border: 1px solid #00d2ff; padding: 20px; border-radius: 8px; margin-top: 20px; }
-        input, textarea { width: 100%; padding: 10px; margin: 8px 0 15px; background: #0b0f19; border: 1px solid #334155; color: #fff; border-radius: 5px; }
-        .btn-action { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-danger { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-top: 8px; }
+        label { display: block; font-size: 0.95rem; color: #cbd5e1; margin-top: 5px; }
+        input[type="text"], textarea, select { width: 100%; padding: 10px; margin: 6px 0 15px; background: #0b0f19; border: 1px solid #334155; color: #fff; border-radius: 5px; }
+        input[type="file"] { width: 100%; padding: 8px; margin: 6px 0 15px; background: #0b0f19; border: 1px dashed #00d2ff; color: #cbd5e1; border-radius: 5px; cursor: pointer; }
+        .helper-note { font-size: 0.8rem; color: #94a3b8; margin-top: -10px; margin-bottom: 12px; display: block; }
+        .btn-action { background: #10b981; color: white; border: none; padding: 12px 22px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-action:disabled { background: #475569; cursor: not-allowed; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-top: 10px; }
 
         /* Footer */
         footer { text-align: center; padding: 30px 20px; color: #64748b; font-size: 0.9rem; border-top: 1px solid #1e293b; margin-top: 40px; }
@@ -55,7 +65,6 @@
         <div class="card">
             <h2>Our Mission</h2>
             <p>Zero Space is dedicated to clearing orbital space debris to ensure safe satellite operations and future space exploration. Through advanced autonomous capture systems, we are building a cleaner, safer orbit around Earth.</p>
-            <!-- உங்களது Crowdfunding தளத்தின் லிங்கை இங்கே இணைத்துக்கொள்ளலாம் -->
             <a href="#" id="funding-link" class="btn-fund" target="_blank">Support Our Crowdfunding Campaign</a>
         </div>
 
@@ -69,14 +78,22 @@
 
         <!-- Hidden Admin Control Panel -->
         <div id="admin-panel">
-            <h3 style="color: #00d2ff; margin-bottom: 10px;">Admin Dashboard - Post New Update</h3>
+            <h3 style="color: #00d2ff; margin-bottom: 12px;">Admin Dashboard - Post New Update</h3>
+            
             <label>Update Title:</label>
             <input type="text" id="post-title" placeholder="e.g., Prototype Design Completed">
             
             <label>Update Details / Message:</label>
             <textarea id="post-desc" rows="4" placeholder="Write your latest progress details here..."></textarea>
+
+            <label>Upload Photo, Video, or File (Optional):</label>
+            <input type="file" id="post-file" accept="image/*,video/*,.pdf,.doc,.docx,.zip">
+            <span class="helper-note">Supports Photos (JPG/PNG), Short Videos (MP4), and Documents (PDF/DOCX). Max ~5MB per file.</span>
+
+            <label>Or Paste Video / External Link (Optional - for large videos):</label>
+            <input type="text" id="post-link" placeholder="e.g., https://youtu.be/... or Google Drive link">
             
-            <button class="btn-action" onclick="publishUpdate()">Publish Live Update</button>
+            <button class="btn-action" id="publish-btn" onclick="publishUpdate()">Publish Live Update</button>
             <button class="btn-danger" onclick="logoutAdmin()" style="float: right;">Logout</button>
         </div>
     </div>
@@ -92,7 +109,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // உங்கள் Firebase விவரங்கள் இங்கே இணைக்கப்பட்டுள்ளன
         const firebaseConfig = {
           apiKey: "AIzaSyAowKd06Zq3i7D0VWbf8Dq6Tu22K1OrMG4",
           authDomain: "zero-space-a7114.firebaseapp.com",
@@ -106,9 +122,16 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const updatesRef = ref(db, 'updates');
+
+        // Helper to convert YouTube URL to Embed URL
+        function getYouTubeEmbed(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? 'https://www.youtube.com/embed/' + match[2] : null;
+        }
 
         // Real-time Updates Fetching
-        const updatesRef = ref(db, 'updates');
         onValue(updatesRef, (snapshot) => {
             const container = document.getElementById('updates-container');
             container.innerHTML = '';
@@ -123,40 +146,127 @@
 
             Object.keys(data).reverse().forEach((key) => {
                 const item = data[key];
-                const deleteBtn = isAdmin ? `<br><button class="btn-danger" onclick="deletePost('${key}')">Delete</button>` : '';
+                const deleteBtn = isAdmin ? `<br><button class="btn-danger" onclick="deletePost('${key}')">Delete Post</button>` : '';
                 
+                let mediaHtml = '';
+                // Render Uploaded File (Photo / Video / Doc)
+                if (item.fileData && item.fileType) {
+                    if (item.fileType.startsWith('image/')) {
+                        mediaHtml += `<div class="update-media"><img src="${item.fileData}" alt="${item.title}"></div>`;
+                    } else if (item.fileType.startsWith('video/')) {
+                        mediaHtml += `<div class="update-media"><video controls src="${item.fileData}"></video></div>`;
+                    } else {
+                        mediaHtml += `<div class="update-media"><a href="${item.fileData}" download="${item.fileName || 'attachment'}" class="file-download-btn">📄 Download File: ${item.fileName || 'Document'}</a></div>`;
+                    }
+                }
+
+                // Render External Link / YouTube Video
+                if (item.extLink) {
+                    const ytEmbed = getYouTubeEmbed(item.extLink);
+                    if (ytEmbed) {
+                        mediaHtml += `<div class="update-media"><iframe src="${ytEmbed}" allowfullscreen></iframe></div>`;
+                    } else {
+                        mediaHtml += `<div class="update-media"><a href="${item.extLink}" target="_blank" class="file-download-btn">🔗 View Attached Link / Video</a></div>`;
+                    }
+                }
+
                 container.innerHTML += `
                     <div class="update-item">
                         <div class="update-date">${item.date}</div>
                         <div class="update-title">${item.title}</div>
-                        <p style="margin-top: 5px; color: #cbd5e1;">${item.desc}</p>
+                        <p style="margin-top: 6px; color: #cbd5e1; white-space: pre-line;">${item.desc}</p>
+                        ${mediaHtml}
                         ${deleteBtn}
                     </div>
                 `;
             });
         });
 
+        // Compress Image before saving so it loads fast
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxWidth = 900;
+                    const scaleSize = maxWidth / img.width;
+                    canvas.width = img.width > maxWidth ? maxWidth : img.width;
+                    canvas.height = img.width > maxWidth ? img.height * scaleSize : img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    callback(canvas.toDataURL('image/jpeg', 0.8));
+                };
+            };
+        }
+
         // Publish Function
         window.publishUpdate = function() {
             const title = document.getElementById('post-title').value.trim();
             const desc = document.getElementById('post-desc').value.trim();
+            const fileInput = document.getElementById('post-file');
+            const extLink = document.getElementById('post-link').value.trim();
+            const btn = document.getElementById('publish-btn');
 
-            if (title && desc) {
-                const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            if (!title || !desc) {
+                alert("Please enter both Title and Details.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Uploading & Publishing...";
+
+            const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const file = fileInput.files[0];
+
+            const saveToDb = (fileData = null, fileType = null, fileName = null) => {
                 const newPostRef = push(updatesRef);
                 set(newPostRef, {
                     date: today,
                     title: title,
-                    desc: desc
+                    desc: desc,
+                    fileData: fileData,
+                    fileType: fileType,
+                    fileName: fileName,
+                    extLink: extLink || null
                 }).then(() => {
-                    alert("Update Published Successfully to the World!");
+                    alert("Update Published Successfully!");
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-desc').value = '';
+                    fileInput.value = '';
+                    document.getElementById('post-link').value = '';
+                    btn.disabled = false;
+                    btn.innerText = "Publish Live Update";
                 }).catch((error) => {
-                    alert("Error: " + error.message);
+                    alert("Upload Error (File might be too large): " + error.message);
+                    btn.disabled = false;
+                    btn.innerText = "Publish Live Update";
                 });
+            };
+
+            if (file) {
+                if (file.size > 6 * 1024 * 1024) {
+                    alert("File is larger than 6MB! For large videos, please upload to YouTube/Google Drive and paste the link below.");
+                    btn.disabled = false;
+                    btn.innerText = "Publish Live Update";
+                    return;
+                }
+
+                if (file.type.startsWith('image/')) {
+                    compressImage(file, (compressedDataUrl) => {
+                        saveToDb(compressedDataUrl, file.type, file.name);
+                    });
+                } else {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => {
+                        saveToDb(reader.result, file.type, file.name);
+                    };
+                }
             } else {
-                alert("Please enter both Title and Details.");
+                saveToDb();
             }
         };
 
@@ -169,22 +279,27 @@
     </script>
 
     <script>
+        // Show Admin panel automatically if already logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('zs_admin_logged') === 'true') {
+                document.getElementById('admin-panel').style.display = 'block';
+            }
+        });
+
         // Admin Login Trigger
         function openAdminLogin() {
             if (sessionStorage.getItem('zs_admin_logged') === 'true') {
                 document.getElementById('admin-panel').style.display = 'block';
-                alert("Admin panel is already open below!");
+                document.getElementById('admin-panel').scrollIntoView({ behavior: 'smooth' });
                 return;
             }
             const user = prompt("Enter Admin Username:");
             const pass = prompt("Enter Admin Password:");
 
-            // அட்மின் யூசர்நேம் மற்றும் பாஸ்வேர்ட் (இதை மாற்றிக்கொள்ளலாம்)
             if (user === "lawrence" && pass === "zerospace2026") {
                 sessionStorage.setItem('zs_admin_logged', 'true');
                 document.getElementById('admin-panel').style.display = 'block';
                 location.reload();
-                alert("Welcome back, Lawrence! Admin mode unlocked.");
             } else {
                 alert("Incorrect Username or Password!");
             }
@@ -197,4 +312,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
