@@ -30,8 +30,7 @@
         .update-date { font-size: 0.85rem; color: #64748b; margin-bottom: 5px; }
         .update-title { font-size: 1.2rem; font-weight: bold; color: #e2e8f0; }
         .update-media { margin-top: 12px; }
-        .update-media img { max-width: 100%; max-height: 400px; border-radius: 6px; border: 1px solid #1e293b; display: block; }
-        .update-media video { max-width: 100%; max-height: 400px; border-radius: 6px; border: 1px solid #1e293b; display: block; }
+        .update-media img, .update-media video { max-width: 100%; max-height: 400px; border-radius: 6px; border: 1px solid #1e293b; display: block; }
         .update-media iframe { width: 100%; height: 315px; border: none; border-radius: 6px; }
         .file-download-btn { display: inline-block; margin-top: 10px; padding: 8px 15px; background: #1e293b; color: #00d2ff; text-decoration: none; border-radius: 5px; font-size: 0.9rem; border: 1px solid #00d2ff; }
         .file-download-btn:hover { background: #00d2ff; color: #0b0f19; }
@@ -65,8 +64,12 @@
         <div class="card">
             <h2>Our Mission</h2>
             <p>Zero Space is dedicated to clearing orbital space debris to ensure safe satellite operations and future space exploration. Through advanced autonomous capture systems, we are building a cleaner, safer orbit around Earth.</p>
-            <a href="upi://pay?pa=kaise30mp@okicici&pn=Zero%20Space%20Research&cu=INR" target="_blank" class="btn-fund">Support Our Prototype Research</a>
-<div style="margin-top: 15px; text-align: center;"><p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 5px;">(Or scan via GPay / PhonePe / Paytm)</p><img src="1000039296.png" alt="UPI QR Code" style="width: 150px; height: 150px; border-radius: 6px; border: 1px solid #1e293b;"></div>
+            <a href="upi://pay?pa=kaise30mp@okicici&pn=Zero%20Space%20Research&cu=INR" class="btn-fund">Support Our Prototype Research</a>
+            <div style="margin-top: 15px; text-align: center;">
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 5px;">(Or scan via GPay / PhonePe / Paytm)</p>
+                <img src="1000039296.png" alt="UPI QR Code" style="width: 150px; height: 150px; border-radius: 6px; border: 1px solid #1e293b;">
+            </div>
+        </div>
 
         <!-- Live Updates Section -->
         <div class="card">
@@ -149,7 +152,6 @@
                 const deleteBtn = isAdmin ? `<br><button class="btn-danger" onclick="deletePost('${key}')">Delete Post</button>` : '';
                 
                 let mediaHtml = '';
-                // Render Uploaded File (Photo / Video / Doc)
                 if (item.fileData && item.fileType) {
                     if (item.fileType.startsWith('image/')) {
                         mediaHtml += `<div class="update-media"><img src="${item.fileData}" alt="${item.title}"></div>`;
@@ -160,7 +162,6 @@
                     }
                 }
 
-                // Render External Link / YouTube Video
                 if (item.extLink) {
                     const ytEmbed = getYouTubeEmbed(item.extLink);
                     if (ytEmbed) {
@@ -182,7 +183,7 @@
             });
         });
 
-        // Compress Image before saving so it loads fast
+        // Compress Image before saving
         function compressImage(file, callback) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -279,14 +280,12 @@
     </script>
 
     <script>
-        // Show Admin panel automatically if already logged in
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('zs_admin_logged') === 'true') {
                 document.getElementById('admin-panel').style.display = 'block';
             }
         });
 
-        // Admin Login Trigger
         function openAdminLogin() {
             if (sessionStorage.getItem('zs_admin_logged') === 'true') {
                 document.getElementById('admin-panel').style.display = 'block';
@@ -312,4 +311,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
